@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}" # Mapea el puerto del host al contenedor
+    depends_on:
+      - mariadb
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT:-3000}
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      # Para el desafío 4
+      - JWT_SECRET=${JWT_SECRET}
+    restart: unless-stopped
+    volumes: # Opcional: para desarrollo, para reflejar cambios de código sin reconstruir imagen
+      - .:/usr/src/app
+      - /usr/src/app/node_modules # No mapear node_modules del host
+
+  mariadb:
+    image: mariadb:10.11 # Una versión LTS reciente de MariaDB
+    ports:
+      - "3306:3306" # Exponer puerto de MariaDB al host (cuidado en producción)
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword} # Contraseña de root de MariaDB
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql # Persistir datos de MariaDB
+      - ./my.cnf:/etc/mysql/conf.d/custom.cnf # Archivo de configuración personalizado
+    # --- SECCIÓN CORREGIDA ---
+    command:
+      # Las siguientes líneas son argumentos para el comando mysqld y deben ser ítems de una lista YAML.
+      # El archivo my.cnf también establece max_connections, por lo que esta línea es redundante si my.cnf se carga correctamente.
+      # Sin embargo, la mantenemos aquí para ilustrar la sintaxis correcta de la lista.
+      - --max_connections=${DB_CONNECTION_LIMIT:-500} # Límite de conexiones
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    # --- FIN DE SECCIÓN CORREGIDA ---
+    restart: unless-stopped
+
+volumes:
+  mariadb_data: # Volumen para persistir los datos de la BD
