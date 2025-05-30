@@ -114,41 +114,12 @@ Todos los endpoints están bajo el prefijo `/api/csv`.
     * **Funcionalidad:** Genera un token JWT.
     * **Salida:** JSON con el token.
 
-## Pruebas
-
-Para ejecutar las pruebas (Jest):
-
-```bash
-npm test
-```
-
-Esto ejecutará las pruebas y generará un reporte de cobertura en la carpeta `coverage/`. El CI fallará si la cobertura es menor al 80%.
-
-Para ejecutar en modo watch:
-```bash
-npm run test:watch
-```
-
-## Linting
-
-Para revisar el estilo del código con ESLint (y Prettier, si está configurado):
-
-```bash
-npm run lint
-```
-Se recomienda instalar las extensiones de ESLint y Prettier en tu editor de código.
-
 ## Desafíos para el Candidato
 
 **Objetivo:** Evaluar tu capacidad para entender, optimizar y extender una base de código existente en Node.js, así como tus conocimientos sobre buenas prácticas de desarrollo backend.
 
 **Instrucciones:**
 Ve resolviendo de manera consecutiva. Cada uno de los retos está pensado para incrementar su dificultad. No importa si no logras completar los 4 en el tiempo límite, solo resuelve lo más que puedas y documenta tus decisiones. **Es crucial que expliques el PORQUÉ de tus cambios y optimizaciones.**
-
-**Consideraciones Importantes:**
-* **Fuga de Conexiones:** La base de datos (`src/components/csv-processor/bdd/mariadb-connector.js` y `src/components/csv-processor/modules/csv-data.js`) está configurada para **NO cerrar conexiones a MariaDB después de cada operación y para crear una nueva conexión por cada consulta simple**. Esto, combinado con el límite de 500 conexiones en MariaDB, causará problemas rápidamente. Parte de tu tarea es identificar y solucionar esto.
-* **Lentitud Intencional:** Los servicios de procesamiento de CSV son deliberadamente lentos (simulan retardos y procesamiento ineficiente).
-* **Commits:** Realiza commits después de completar cada desafío o sub-tarea significativa.
 
 ---
 
@@ -158,9 +129,6 @@ Ve resolviendo de manera consecutiva. Cada uno de los retos está pensado para i
 Revisa el endpoint `POST /api/csv/upload-validate-save` y su lógica asociada (`csv-service.js`, `csv-data.js`).
 1.  **Identifica los cuellos de botella** que causan la lentitud y el agotamiento de conexiones.
 2.  **Refactoriza el código** para mejorar significativamente el tiempo de respuesta y la gestión de conexiones a la base de datos.
-    * Implementa un pool de conexiones para MariaDB.
-    * Optimiza la inserción de múltiples registros (ej. `INSERT ... VALUES (...), (...), ...` o transacciones si aplica).
-    * Mejora el parseo y procesamiento del CSV para que no sea bloqueante por cada fila de la manera actual.
 3.  **Documenta** brevemente los cambios realizados y por qué mejoran el rendimiento/estabilidad.
 
 ---
@@ -171,8 +139,6 @@ Revisa el endpoint `POST /api/csv/upload-validate-save` y su lógica asociada (`
 Revisa el endpoint `POST /api/csv/check-missing` y su lógica.
 1.  **Identifica los cuellos de botella** similares o diferentes al WS1.
 2.  **Refactoriza el código** para mejorar el tiempo de respuesta y la gestión de conexiones.
-    * Utiliza el pool de conexiones implementado en el Desafío 1.
-    * Optimiza la forma en que se consultan múltiples números en la base de datos (ej. `SELECT ... WHERE number IN (...)`).
 3.  **Documenta** los cambios.
 
 ---
@@ -192,7 +158,6 @@ Revisa el endpoint `POST /api/csv/find-add-missing` y su lógica.
 **Tarea:**
 1.  **Crea un nuevo endpoint `POST /api/csv/auth/token`:**
     * Debe aceptar `username` y `password` en el cuerpo de la solicitud (JSON).
-    * **Para la prueba, puedes hardcodear un usuario y contraseña válidos** (ej. `admin` / `password123`). No es necesario crear una tabla de usuarios.
     * Si las credenciales son válidas, genera un **token JWT** que contenga el `username` y una **expiración de 5 minutos**. Utiliza la variable `JWT_SECRET` del archivo `.env` para firmar el token.
     * Responde con el token.
 2.  **Crea un middleware de autenticación:**
@@ -200,19 +165,9 @@ Revisa el endpoint `POST /api/csv/find-add-missing` y su lógica.
     * Debe validar el token (firma y expiración).
     * Si el token es válido, debe permitir que la solicitud continúe. Puedes agregar el payload del token decodificado (ej. `req.user`) al objeto `request` para uso posterior.
     * Si el token es inválido, está ausente o ha expirado, debe responder con un error `401 Unauthorized` o `403 Forbidden` según corresponda.
-    * **Persistencia a reinicios:** Para esta prueba, la "persistencia" del token se refiere a que el token en sí mismo (una vez generado y entregado al cliente) pueda ser validado incluso si el servidor se reinicia (esto es inherente a JWT si el `JWT_SECRET` no cambia). No necesitas almacenar los tokens generados en el servidor para este desafío.
 3.  **Aplica el middleware de autenticación** a los tres endpoints de procesamiento de CSV existentes (`/upload-validate-save`, `/check-missing`, `/find-add-missing`). El endpoint `/auth/token` NO debe estar protegido por este middleware.
 4.  **Actualiza las pruebas** o añade nuevas para cubrir el endpoint de autenticación y el comportamiento de los endpoints protegidos.
 
 ---
 
 **¡Mucha suerte!**
-
-## Sugerencias Adicionales (Opcional, para el evaluador)
-
-* **CI (GitHub Actions):** El repositorio incluye un workflow básico en `.github/workflows/ci.yml` que ejecuta `npm ci`, `npm run lint`, y `npm test` en cada push/pull_request. También construye una imagen Docker en pushes a ramas principales.
-* **Linting (ESLint + Prettier):** Se recomienda configurar ESLint y Prettier para mantener la consistencia del código. Un `package.json` base con estas dependencias y scripts está incluido.
-    * `eslint-config-prettier` para evitar conflictos entre ESLint y Prettier.
-    * `eslint-plugin-prettier` para correr Prettier como una regla de ESLint.
-
-Considera crear un archivo `.eslintrc.js` y `.prettierrc.js` con configuraciones base.
