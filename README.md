@@ -42,19 +42,28 @@ prueba-tecnica-nodejs/
 ## Instalación y Configuración
 
 1.  **Clonar el repositorio:**
-    ```bash
-    git clone <url-del-repositorio>
-    cd prueba-tecnica-nodejs
+      Desde la página:
+      👉 https://github.com/voices-dev/prueba_backend
+        Haz clic en el botón "Fork" (esquina superior derecha).
+2. Clona tu fork
     ```
+    git clone https://github.com/tu-usuario/prueba_backend.git
+    cd prueba_backend
+    ```
+3. Colabora
+    Ve a GitHub y crea el Pull Request
+    Ve a tu repositorio (https://github.com/tu-usuario/prueba_backend) y verás un botón para “Compare & pull request”.
 
-2.  **Crear archivo `.env`:**
+    Selecciona voices-dev/prueba_backend como destino.
+
+4.  **Crear archivo `.env`:**
     Copia el contenido de `.env.example` a un nuevo archivo llamado `.env` y ajusta las variables si es necesario (aunque los valores por defecto deberían funcionar con Docker Compose).
     ```bash
     cp .env.example .env
     ```
     **Importante:** Asegúrate de que `DB_HOST` en `.env` esté configurado como `mariadb` para que la aplicación Node.js pueda encontrar el contenedor de la base de datos. Las credenciales `DB_USER`, `DB_PASSWORD`, `DB_NAME` deben coincidir entre el servicio `app` y `mariadb` en `docker-compose.yml`.
 
-3.  **Construir e iniciar los contenedores Docker:**
+5.  **Construir e iniciar los contenedores Docker:**
     Este comando construirá la imagen de la aplicación Node.js y levantará los servicios `app` y `mariadb`.
     ```bash
     docker-compose up --build -d
